@@ -1,0 +1,69 @@
+version: '3.7'
+
+services:
+  web:
+    build: "./docker/linux"
+    # vscodeでデバッグするためにホスト追加
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    container_name: "bot-web"
+    platform: linux/x86_64
+    ports:
+      - 80:80
+      - 443:443
+    # コンテナに配置するファイルの場所、webアプリケーションの構成に合わせて変更
+    volumes:
+      - ./:/var/www/
+    privileged: true
+    tty: true
+    stdin_open: true
+    depends_on:
+      - mysql
+    networks:
+      - br0
+  mysql:
+    #mysqlのバージョンに合わせて変更
+    image: mysql:8.0.29
+    container_name: "bot-db"
+    platform: linux/x86_64
+    volumes:
+      - db_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: 'bot-db'
+      TZ: 'Asia/Tokyo'
+    ports:
+      - 3306:3306
+    networks:
+      - br0
+  phpmyadmin:
+    container_name: "bot-phpmyadmin"
+    platform: linux/x86_64
+    depends_on:
+      - mysql
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: mysql
+    ports:
+      - 8080:80
+    volumes:
+      - ./docker/phpmyadmin/phpmyadmin-misc.ini:/usr/local/etc/php/conf.d/phpmyadmin-misc.ini
+    networks:
+      - br0
+  # mailpit:
+  #   image: axllent/mailpit
+  #   container_name: study-mailpit
+  #   restart: always
+  #   ports:
+  #     - '1025:1025'
+  #     - '8025:8025'
+  #   networks:
+  #     - br0
+  #   depends_on:
+  #     - mysql
+volumes:
+  db_data: {}
+
+networks:
+  br0:
+    driver: bridge
