@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Line;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use LINE\Clients\MessagingApi\Api\MessagingApiApi;
 use LINE\Clients\MessagingApi\Model\ReplyMessageRequest;
@@ -19,7 +20,8 @@ class WebhookController extends Controller
      */
     public function replyMessage(Request $request)
     {
-        $event = $request->input('events');
+        $event = $request->input('events')[0];
+        Log::info($event);
         $client = new \GuzzleHttp\Client();
         $config = new \LINE\Clients\MessagingApi\Configuration();
         $config->setAccessToken(config('line-bot.channel_access_token'));
@@ -27,11 +29,14 @@ class WebhookController extends Controller
             client: $client,
             config: $config,
         );
+        // 送信メッセージ
         $message = (new TextMessage())
             ->setType(\LINE\Constants\MessageType::TEXT)
             ->setText('hello!');
+
+        // 返信用インスタンスにセット
         $request = (new ReplyMessageRequest)
-            ->setReplyToken()
+            ->setReplyToken($event['replyToken'])
             ->setMessages([$message]);
         try {
             $messagingApi->replyMessage($request);

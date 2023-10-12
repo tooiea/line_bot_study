@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Line\WebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -19,4 +18,3 @@ use Illuminate\Support\Facades\Route;
 //     return $request->user();
 // });
 
-Route::post('line/webhook/message', [WebhookController::class, 'replyMessage']);
